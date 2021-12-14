@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description="Beeps at you when you\'re too loud
                                  formatter_class=argparse.RawTextHelpFormatter)
 # needs to be renamed and able to set to a choice of low/med/high or something similar
 # e.g. -s (sensitivity), -l (level)
-parser.add_argument("-vol", "--volume", help="normalized volume value that triggers a 'yell'",
+parser.add_argument("-t", "--threshold", help="normalized volume value that triggers a 'yell'",
                     type=int, default=180)
 parser.add_argument("-d", "--duration", type=int, default=1,
                     help="time (in seconds) in between 'yells' (default 1 second)")
@@ -27,7 +27,7 @@ parser.add_argument("-nr", "--NoRecord", help="disables recording data into a .c
 args = parser.parse_args()
 
 # normalized volume value that triggers a 'yell' (Default 180)
-volume = args.volume
+threshold = args.threshold
 
 # Duration in seconds between 'yells' (Default 1 second)
 duration = args.duration
@@ -55,7 +55,7 @@ def print_sound(indata, outdata, frames, time, status):
     elif (verbosity == 2):
         print(int(volume_norm))
 
-    if (volume_norm >= volume): # 180 seems like a good start
+    if (volume_norm >= threshold): # 180 seems like a good start
         os.system(cmd)
         yell_counter += 1
         sd.sleep(duration * 1000)
