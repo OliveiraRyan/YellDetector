@@ -2,8 +2,12 @@ import sounddevice as sd
 import numpy as np
 import os
 import sys
+import math
 import time
+import datetime
 import argparse
+
+from timeit import default_timer as timer
 
 parser = argparse.ArgumentParser(description="Beeps at you when you\'re too loud", 
                                  formatter_class=argparse.RawTextHelpFormatter)
@@ -22,7 +26,6 @@ parser.add_argument("-nr", "--NoRecord", help="disables recording data into a .c
 
 args = parser.parse_args()
 
-
 # normalized volume value that triggers a 'yell' (Default 180)
 volume = args.volume
 
@@ -36,8 +39,12 @@ verbosity = args.verbosity
 # In Powershell, this creates the windows noise 
 cmd = "echo " + chr(7)
 
-yell_counter = 0
 
+yell_counter = 0
+start_time = timer()
+
+# Save for later!!! -- grabs and formats current datetime. Used for storing time of yell in .csv
+# current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def print_sound(indata, outdata, frames, time, status):
     global yell_counter
@@ -61,6 +68,10 @@ try:
             time.sleep(60)
 
 except KeyboardInterrupt:
+    seconds = math.trunc(timer() - start_time)
+    # formats elapsed time in seconds to datetime format, accounting for rollover (>24h)
+    elapsed_time = str(datetime.timedelta(seconds=seconds))
+
     if (args.NoRecord):
-        sys.exit('Interrupted by user')
-    sys.exit('Interrupted by user, you yelled {} times'.format(yell_counter))
+        sys.exit('Interrupted by user. Program ran for {}'.format(elapsed_time))
+    sys.exit('Interrupted by user; you yelled {} times within a time interval of {}!'.format(yell_counter, elapsed_time))
