@@ -6,6 +6,7 @@ import math
 import time
 import datetime
 import argparse
+import csv
 
 from timeit import default_timer as timer
 
@@ -39,9 +40,18 @@ verbosity = args.verbosity
 # In Powershell, this creates the windows noise 
 cmd = "echo " + chr(7)
 
+# Open the data.csv file in append mode
+f = open('./yell_records.csv', 'a', newline='')
+field_names = ['Threshold', 'Volume Value', 'Datetime']
+writer = csv.writer(f)
+# Write headers if file is empty
+if os.stat('yell_records.csv').st_size == 0:
+  writer.writerow(field_names)
+
 
 yell_counter = 0
 start_time = timer()
+start_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # Save for later!!! -- grabs and formats current datetime. Used for storing time of yell in .csv
 # current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -57,6 +67,11 @@ def print_sound(indata, outdata, frames, time, status):
 
     if (volume_norm >= threshold): # 180 seems like a good start
         os.system(cmd)
+
+        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data = [threshold, math.trunc(volume_norm), current_datetime]
+        writer.writerow(data)
+
         yell_counter += 1
         sd.sleep(duration * 1000)
 
@@ -68,9 +83,21 @@ try:
             time.sleep(60)
 
 except KeyboardInterrupt:
+    f.close()
+
     seconds = math.trunc(timer() - start_time)
     # formats elapsed time in seconds to datetime format, accounting for rollover (>24h)
     elapsed_time = str(datetime.timedelta(seconds=seconds))
+
+    field_names = ['Datetime started', 'Elapsed Time', 'Number of Yells', 'Threshold']
+    data = [start_datetime, elapsed_time, yell_counter, threshold]
+    with open('session_records.csv', 'a', newline='') as f:
+        writer = csv.writer(f)
+        # Write headers if file is empty
+        if os.stat('session_records.csv').st_size == 0:
+            writer.writerow(field_names)
+        
+        writer.writerow(data)
 
     if (args.NoRecord):
         sys.exit('Interrupted by user. Program ran for {}'.format(elapsed_time))
